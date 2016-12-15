@@ -50,20 +50,27 @@ def get_sms_freq(c):
 
     return sorted_items
 
+def remove_punctuation(s):
+    '''Return string with punctuation removed'''
+
+    puncs = ['.', ',', '?', '"']
+
+    return (''.join(c.lower() for c in s if c not in puncs),)
+
+
 def get_messages_by_num(phone_num, c):
     '''Return a list of all messages sent from a specified number'''
 
-    puncs = ['.', ',', '?', '"']
     messages = []
     for row in c.execute("SELECT message.text FROM message JOIN handle ON message.handle_id = handle.ROWID WHERE handle.id = ? and message.is_from_me = 0;", (phone_num,)):
         messages.append(row)
 
-    for m in messages:
-        for i in range(len(m)):
-            if m[i] in puncs:
-                m[i] = ''
+    clean = []
+    for m, in messages:
+        removed = remove_punctuation(m)
+        clean.append(removed)
 
-    return messages
+    return clean
 
 def get_word_freq(m_list):
     '''Return sorted list of words sorted by their frequency'''
@@ -135,12 +142,15 @@ def generate_text(bg_list):
     '''Generate a message based on bigrams'''
 
     seed = '<M>'
+    t = []
     while seed != '</M>':
         options = [bg for bg in bg_list if bg[0] == seed]
         random.shuffle(options)
-        choice = options[0][1]
-        print(choice)
-        seed = choice
+        pick = options[0][1]
+        t.append(pick)
+        seed = pick
+    t = t[:len(t)-1]
+    print(' '.join(t))
 
 def main():
 
